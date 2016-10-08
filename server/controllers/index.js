@@ -15,21 +15,21 @@ module.exports = {
             objectId: row.message_id
           };
           results.push(obj);
-          console.log(results);
         });
         res.end(JSON.stringify({results: results}));
       });      
     }, // a function which handles a get request for all messages
     post: function (req, res) {
       console.log('messages post hello');
-      res.statusCode = 201;
       var body = '';
       req.on('data', function (chunk) {
         body += chunk;
       });
       req.on('end', function () {
-        console.log(body);
-        models.messages.post(body);
+        models.messages.post(body, function () {
+          res.writeHead(201);
+          res.end(body);
+        });
       });
     } // a function which handles posting a message to the database
   },

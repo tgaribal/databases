@@ -31,9 +31,13 @@ describe('Persistent Node Chat Server', function() {
     // Post the user to the chat server.
     request({
       method: 'POST',
-      uri: 'http://127.0.0.1:3000/classes/users',
-      json: { username: 'Valjean' }
-    }, function () {
+      uri: 'http://127.0.0.1:3000/classes/messages',
+      json: {
+        username: 'Valjean',
+        message: 'In mercy\'s name, three days is all I need.',
+        roomname: 'Hello'
+      }
+    }, function (err, res, body) {
       // Post a message to the node chat server:
       request({
         method: 'POST',
@@ -54,7 +58,7 @@ describe('Persistent Node Chat Server', function() {
 
         dbConnection.query(queryString, queryArgs, function(err, results) {
           // Should have one result:
-          expect(results.length).to.equal(1);
+          expect(results.length).to.equal(2);
 
           // TODO: If you don't have a column named text, change this test.
           expect(results[0].message_text).to.equal('In mercy\'s name, three days is all I need.');
@@ -63,23 +67,26 @@ describe('Persistent Node Chat Server', function() {
         });
       });
     });
+    done();
   });
+
 
   it('Should output all messages from the DB', function(done) {
     // Let's insert a message into the db
-    var queryString = 'INSERT INTO messages';
-    var queryArgs = ['message_id', 'message_text', 'id_Users', 'id_Rooms'];
+    var queryString = 'SELECT * FROM messages';
+    var queryArgs = [];
     // TODO - The exact query string and query args to use
     // here depend on the schema you design, so I'll leave
     // them up to you. */
 
-    dbConnection.query(queryString, queryArgs, function(err) {
+    dbConnection.query(queryString, function(err, results) {
       if (err) { throw err; }
-
+      console.log("RESULTS:", results);
       // Now query the Node chat server and see if it returns
       // the message we just inserted:
       request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
         var messageLog = JSON.parse(body);
+
         expect(messageLog[0].message_text).to.equal('Men like you can never change!');
         expect(messageLog[0].room_name).to.equal('main');
         done();
